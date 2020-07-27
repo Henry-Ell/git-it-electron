@@ -1,3 +1,4 @@
+var locale = require('../lib/locale.js')
 module.exports = function menu (app, mainWindow) {
   var darwinMenu = [
     {
@@ -37,45 +38,9 @@ module.exports = function menu (app, mainWindow) {
         {
           label: 'Quit',
           accelerator: 'Command+Q',
-          click: function () { app.quit() }
-        }
-      ]
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        {
-          label: 'Undo',
-          accelerator: 'Command+Z',
-          selector: 'undo:'
-        },
-        {
-          label: 'Redo',
-          accelerator: 'Shift+Command+Z',
-          selector: 'redo:'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Cut',
-          accelerator: 'Command+X',
-          selector: 'cut:'
-        },
-        {
-          label: 'Copy',
-          accelerator: 'Command+C',
-          selector: 'copy:'
-        },
-        {
-          label: 'Paste',
-          accelerator: 'Command+V',
-          selector: 'paste:'
-        },
-        {
-          label: 'Select All',
-          accelerator: 'Command+A',
-          selector: 'selectAll:'
+          click: function () {
+            app.quit()
+          }
         }
       ]
     },
@@ -85,87 +50,41 @@ module.exports = function menu (app, mainWindow) {
         {
           label: 'Reload',
           accelerator: 'Command+R',
-          click: function () { mainWindow.restart() }
+          click: function (item, focusedWindow) {
+            if (focusedWindow) {
+              focusedWindow.reload()
+            }
+          }
         },
         {
-          label: 'Toggle Full Screen',
+          label: 'Full Screen',
           accelerator: 'Ctrl+Command+F',
-          click: function () { mainWindow.setFullScreen(!mainWindow.isFullScreen()) }
+          click: function (item, focusedWindow) {
+            if (focusedWindow) {
+              focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
+            }
+          }
+        },
+        {
+          label: 'Minimize',
+          accelerator: 'Command+M',
+          selector: 'performMiniaturize:'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Bring All to Front',
+          selector: 'arrangeInFront:'
+        },
+        {
+          type: 'separator'
         },
         {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
-          click: function () { mainWindow.toggleDevTools() }
-        }
-      ]
-    },
-    {
-      label: 'Language',
-      submenu: [
-        {
-          label: 'English',
           click: function (item, focusedWindow) {
-            if (focusedWindow) {
-              var goToPath
-              var location = focusedWindow.webContents.getURL()
-              var currentPage = location.split('/').pop().replace('.html', '')
-              if (currentPage.indexOf('index') < 0) {
-                if (location.match('/pages/')) {
-                  goToPath = location
-                  return
-                }
-                goToPath = require('path').join('file://', __dirname, '../challenges', currentPage + '.html')
-              } else {
-                goToPath = require('path').join('file://', __dirname, '../index.html')
-              }
-              focusedWindow.loadURL(goToPath)
-            }
-          }
-        },
-        {
-          label: '正體中文',
-          click: function (item, focusedWindow) {
-            if (focusedWindow) {
-              var goToPath
-              var lang = '-zhtw'
-              var location = focusedWindow.webContents.getURL()
-              var currentPage = location.split('/').pop().replace('.html', '')
-              if (currentPage.indexOf('index') < 0) {
-                if (location.match('/pages/')) {
-                  goToPath = location
-                  return
-                }
-                var chalPath = '../challenges' + lang
-                goToPath = require('path').join('file://', __dirname, chalPath, currentPage + '.html')
-              } else {
-                var indexPath = '../index' + lang + '.html'
-                goToPath = require('path').join('file://', __dirname, indexPath)
-              }
-              focusedWindow.loadURL(goToPath)
-            }
-          }
-        },
-        {
-          label: '日本語',
-          click: function (item, focusedWindow) {
-            if (focusedWindow) {
-              var goToPath
-              var lang = '-ja'
-              var location = focusedWindow.webContents.getURL()
-              var currentPage = location.split('/').pop().replace('.html', '')
-              if (currentPage.indexOf('index') < 0) {
-                if (location.match('/pages/')) {
-                  goToPath = location
-                  return
-                }
-                var chalPath = '../challenges' + lang
-                goToPath = require('path').join('file://', __dirname, chalPath, currentPage + '.html')
-              } else {
-                var indexPath = '../index' + lang + '.html'
-                goToPath = require('path').join('file://', __dirname, indexPath)
-              }
-              focusedWindow.loadURL(goToPath)
-            }
+            focusedWindow.webContents.toggleDevTools()
           }
         }
       ]
@@ -177,15 +96,8 @@ module.exports = function menu (app, mainWindow) {
           label: 'Home',
           click: function (item, focusedWindow) {
             if (focusedWindow) {
-              var lang, regexp
-              var location = focusedWindow.webContents.getURL()
-              var currentPage = location.split('/').pop().replace('.html', '')
-              if (currentPage.match('index')) regexp = /index(-\w+).html/
-              else regexp = /challenges(-\w+)\//
-              lang = location.match(regexp) ? '-' + location.match(regexp)[1].substr(1) : ''
-              var page = '../index' + lang + '.html'
-              var path = require('path').join('file://', __dirname, page)
-              focusedWindow.loadURL(path)
+              var path = require('path').join(locale.getLocaleBuiltPath(locale.getCurrentLocale(focusedWindow)), 'pages', 'index.html')
+              focusedWindow.loadURL('file://' + path)
             }
           }
         },
@@ -193,8 +105,8 @@ module.exports = function menu (app, mainWindow) {
           label: 'Dictionary',
           click: function (item, focusedWindow) {
             if (focusedWindow) {
-              var path = require('path').join('file://', __dirname, '../pages/dictionary.html')
-              focusedWindow.loadURL(path)
+              var path = require('path').join(locale.getLocaleBuiltPath(locale.getCurrentLocale(focusedWindow)), 'pages', 'dictionary.html')
+              focusedWindow.loadURL('file://' + path)
             }
           }
         },
@@ -202,43 +114,10 @@ module.exports = function menu (app, mainWindow) {
           label: 'Resources',
           click: function (item, focusedWindow) {
             if (focusedWindow) {
-              var path = require('path').join('file://', __dirname, '../pages/resources.html')
-              focusedWindow.loadURL(path)
+              var path = require('path').join(locale.getLocaleBuiltPath(locale.getCurrentLocale(focusedWindow)), 'pages', 'resources.html')
+              focusedWindow.loadURL('file://' + path)
             }
           }
-        },
-        {
-          label: 'About App',
-          click: function (item, focusedWindow) {
-            if (focusedWindow) {
-              var path = require('path').join('file://', __dirname, '../pages/about.html')
-              focusedWindow.loadURL(path)
-            }
-          }
-        },
-        {
-          label: 'Open Issue',
-          click: function () { require('electron').shell.openExternal('https://github.com/jlord/git-it-electron/issues/new') }
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Minimize',
-          accelerator: 'Command+M',
-          selector: 'performMiniaturize:'
-        },
-        {
-          label: 'Close',
-          accelerator: 'Command+W',
-          selector: 'performClose:'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: 'Bring All to Front',
-          selector: 'arrangeInFront:'
         }
       ]
     },
@@ -247,7 +126,24 @@ module.exports = function menu (app, mainWindow) {
       submenu: [
         {
           label: 'Repository',
-          click: function () { require('shell').openExternal('http://github.com/jlord/git-it-electron') }
+          click: function () {
+            require('electron').shell.openExternal('http://github.com/jlord/git-it-electron')
+          }
+        },
+        {
+          label: 'Open Issue',
+          click: function () {
+            require('electron').shell.openExternal('https://github.com/jlord/git-it-electron/issues/new')
+          }
+        },
+        {
+          label: 'About App',
+          click: function (item, focusedWindow) {
+            if (focusedWindow) {
+              var path = require('path').join(locale.getLocaleBuiltPath(locale.getCurrentLocale(focusedWindow)), 'pages', 'about.html')
+              focusedWindow.loadURL('file://' + path)
+            }
+          }
         }
       ]
     }
